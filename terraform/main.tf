@@ -173,7 +173,7 @@ resource "aws_lambda_function" "cpf_auth" {
   role          = aws_iam_role.lambda_exec.arn
   handler       = var.lambda_handler
   runtime       = var.lambda_runtime
-  s3_bucket     = var.lambda_s3_bucket
+  s3_bucket     = aws_s3_bucket.lambda_artifacts.bucket
   s3_key        = var.lambda_s3_key
 
   environment {
@@ -221,10 +221,37 @@ resource "aws_apigatewayv2_stage" "http" {
   tags        = local.tags
 }
 
+# ---------------- S3 Bucket para Lambda ----------------
+resource "aws_s3_bucket" "lambda_artifacts" {
+  bucket = "${local.name}-lambda-artifacts-${random_id.bucket_suffix.hex}"
+  tags   = local.tags
+}
+
+resource "aws_s3_bucket_versioning" "lambda_artifacts" {
+  bucket = aws_s3_bucket.lambda_artifacts.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "lambda_artifacts" {
+  bucket = aws_s3_bucket.lambda_artifacts.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 # ---------------- Security Groups (exemplo para Load Balancer público) ----------------
 resource "aws_security_group" "alb_public" {
   name        = "${local.name}-alb-public"
-  description = "Acesso público ao ingress/ALB do EKS"
+  description = "Public access to EKS ingress/ALB"
   vpc_id      = module.vpc.vpc_id
 
   ingress {

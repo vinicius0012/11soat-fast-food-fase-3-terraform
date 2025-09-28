@@ -20,13 +20,10 @@ variable "github_repo" {
   description = "Nome do repositório (sem org) para OIDC."
   type        = string
 }
-variable "lambda_s3_bucket" {
-  description = "Bucket onde o CI publica o ZIP da Lambda."
-  type        = string
-}
 variable "lambda_s3_key" {
   description = "Chave (path) do artefato ZIP da Lambda."
   type        = string
+  default     = "lambda-function.zip"
 }
 variable "lambda_handler" {
   description = "Handler da Lambda (ex: dist/handler.handler)."
