@@ -70,13 +70,12 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run:
+        run: |
           terraform plan \
-          -var="project_name=fastfood" \
-          -var="aws_region=sa-east-1" \
-          -var="github_org=vinicius0012" \
-          -var="github_repo=11soat-fast-food-fase-3-api"
-          # -var="lambda_s3_key=artefatos/lambda-cpf-auth.zip"
+            -var="project_name=fastfood" \
+            -var="aws_region=sa-east-1" \
+            -var="github_org=vinicius0012" \
+            -var="github_repo=11soat-fast-food-fase-3-api"
 
       # - name: Upload Terraform Plan artifact
       #   uses: actions/upload-artifact@v3
