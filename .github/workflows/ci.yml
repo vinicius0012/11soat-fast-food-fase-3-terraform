@@ -10,7 +10,7 @@ on:
 
 env:
   TF_VERSION: "1.13.3"
-  AWS_REGION: "us-east-1" # Usar a Region de um secret
+  AWS_REGION: "us-east-1"
 
 jobs:
   terraform-validate:
@@ -78,12 +78,6 @@ jobs:
             -var="aws_region=sa-east-1" \
             -var="github_org=vinicius0012" \
             -var="github_repo=11soat-fast-food-fase-3-api"
-
-      # - name: Upload Terraform Plan artifact
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: tfplan
-      #     path: tfplan
 
   terraform-apply:
     name: "Terraform Apply"
