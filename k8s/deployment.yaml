@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastfood-app
+  namespace: fastfood
+  labels:
+    app: fastfood-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastfood-app
+  template:
+    metadata:
+      labels:
+        app: fastfood-app
+    spec:
+      containers:
+      - name: fastfood-app
+        image: ECR_REGISTRY/ECR_REPOSITORY:IMAGE_TAG
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5

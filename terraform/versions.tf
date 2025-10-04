@@ -11,10 +11,10 @@ terraform {
     }
   }
   # backend "s3" {
-  #   bucket         = "SEU-BUCKET-REMOTE-STATE"
+  #   bucket         = "fastfood-terraform-state-XXXXX"
   #   key            = "infra-app-aws/terraform.tfstate"
   #   region         = "sa-east-1"
-  #   dynamodb_table = "SEU-DDB-LOCK"
+  #   dynamodb_table = "fastfood-terraform-locks"
   #   encrypt        = true
   # }
 }
