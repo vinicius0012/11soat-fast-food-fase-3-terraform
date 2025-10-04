@@ -125,14 +125,15 @@ module "eks" {
   enable_irsa = true
 
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"]
+    instance_types = ["t3.micro", "t3.small"]
   }
 
   eks_managed_node_groups = {
     default = {
       min_size     = 1
-      max_size     = 3
+      max_size     = 2
       desired_size = 1
+      instance_types = ["t3.micro"]
     }
   }
 
@@ -163,11 +164,21 @@ data "aws_iam_policy_document" "github_oidc" {
   }
 }
 
+# Usar OIDC provider existente se disponível
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
+# Criar OIDC provider apenas se não existir
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
   tags            = local.tags
+
+  lifecycle {
+    ignore_changes = [url, client_id_list, thumbprint_list]
+  }
 }
 
 resource "aws_iam_role" "github_actions_deploy_role" {
