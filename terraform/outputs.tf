@@ -22,3 +22,12 @@ output "github_actions_role_arn" {
 output "private_subnet_ids" {
   value = module.vpc.private_subnets
 }
+output "s3_bucket_name" {
+  value = aws_s3_bucket.terraform_state.bucket
+}
+output "dynamodb_table_name" {
+  value = data.aws_dynamodb_table.terraform_locks.name != null ? data.aws_dynamodb_table.terraform_locks.name : aws_dynamodb_table.terraform_locks[0].name
+}
+output "oidc_provider_arn" {
+  value = data.aws_iam_openid_connect_provider.github.arn
+}

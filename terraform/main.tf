@@ -88,7 +88,14 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 }
 
 # ---------------- DynamoDB para Terraform Locks ----------------
+# Usar tabela existente se disponível
+data "aws_dynamodb_table" "terraform_locks" {
+  name = "${local.name}-terraform-locks"
+}
+
+# Criar apenas se não existir
 resource "aws_dynamodb_table" "terraform_locks" {
+  count          = data.aws_dynamodb_table.terraform_locks.name == null ? 1 : 0
   name           = "${local.name}-terraform-locks"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "LockID"
@@ -146,7 +153,7 @@ data "aws_iam_policy_document" "github_oidc" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
     }
     condition {
       test     = "StringEquals"
@@ -164,21 +171,9 @@ data "aws_iam_policy_document" "github_oidc" {
   }
 }
 
-# Usar OIDC provider existente se disponível
+# Usar OIDC provider existente
 data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
-}
-
-# Criar OIDC provider apenas se não existir
-resource "aws_iam_openid_connect_provider" "github" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
-  tags            = local.tags
-
-  lifecycle {
-    ignore_changes = [url, client_id_list, thumbprint_list]
-  }
 }
 
 resource "aws_iam_role" "github_actions_deploy_role" {
@@ -218,14 +213,21 @@ data "aws_iam_policy_document" "gha_permissions" {
   }
 }
 
+# Usar policy existente se disponível
+data "aws_iam_policy" "gha_policy" {
+  name = "${local.name}-gha-policy"
+}
+
+# Criar apenas se não existir
 resource "aws_iam_policy" "gha_policy" {
+  count  = data.aws_iam_policy.gha_policy.name == null ? 1 : 0
   name   = "${local.name}-gha-policy"
   policy = data.aws_iam_policy_document.gha_permissions.json
 }
 
 resource "aws_iam_role_policy_attachment" "gha_attach" {
   role       = aws_iam_role.github_actions_deploy_role.name
-  policy_arn = aws_iam_policy.gha_policy.arn
+  policy_arn = data.aws_iam_policy.gha_policy.arn != null ? data.aws_iam_policy.gha_policy.arn : aws_iam_policy.gha_policy[0].arn
 }
 
 # ---------------- API Gateway + Lambda (consulta/autenticação CPF) - COMENTADO ----------------
